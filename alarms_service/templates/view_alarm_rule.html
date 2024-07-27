@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Alarm Rule</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .details-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .details-label {
+            font-weight: bold;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Alarm Rule Details</h1>
+        <div class="card">
+            <div class="card-header">
+                Alarm Rule ID: {{ rule.id }}
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Details</h5>
+                <div class="details-row">
+                    <div class="details-label">Sensor ID:</div>
+                    <div>{{ rule.sensor_id }}</div>
+                </div>
+                <div class="details-row">
+                    <div class="details-label">Threshold:</div>
+                    <div>{{ rule.threshold_condition }} {{ rule.threshold_value }}</div>
+                </div>
+                <div class="details-row">
+                    <div class="details-label">Duration:</div>
+                    <div>{{ rule.duration }} minutes</div>
+                </div>
+                <div class="details-row">
+                    <div class="details-label">Shunt Sensor ID:</div>
+                    <div>{{ rule.shunt_sensor_id }}</div>
+                </div>
+                <div class="details-row">
+                    <div class="details-label">Shunt Threshold:</div>
+                    <div>{{ rule.shunt_threshold_condition }} {{ rule.shunt_threshold_value }}</div>
+                </div>
+                <div class="details-row">
+                    <div class="details-label">Alarm Type:</div>
+                    <div>{{ rule.alarm_type }}</div>
+                </div>
+                <a href="/" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

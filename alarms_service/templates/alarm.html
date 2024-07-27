@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alarm Management</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1,
+        h2 {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .jumbotron {
+            padding: 2rem 2rem;
+        }
+
+        .shunt-fields {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Alarm Management</h1>
+        <a class="back-link" href="/">&lt; Back</a>
+        <div class="jumbotron">
+            <h3>Create Threshold Violation Alarm</h3>
+            <form action="/alarm_rules" method="POST">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="sensor_id_temp">Sensor:*</label>
+                            <select class="form-control" id="sensor_id_temp" name="sensor_id_temp" required>
+                                {% for sensor in sensors %}
+                                <option value="{{ sensor.sensor_id }},{{ sensor.sensor_type }}">{{ sensor.sensor_id }},
+                                    {{ sensor.sensor_type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="threshold_condition">Threshold condition:*</label>
+                            <select class="form-control" id="threshold_condition" name="threshold_condition" required>
+                                <option value=">">> (greater than)</option>
+                                <option value="<">< (less than)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="duration_conditional">Duration (minutes):*</label>
+                            <input type="number" class="form-control" id="duration_conditional" name="duration"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="threshold_value_conditional">Threshold Value:*</label>
+                            <input type="number" class="form-control" id="threshold_value_conditional"
+                                name="threshold_value" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="shunt_enabled">Enable Shunt Condition</label>
+                    <input type="checkbox" id="shunt_enabled" name="shunt_enabled" value="1">
+                </div>
+
+                <div class="shunt-fields">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="shunt_sensor_id">Shunt Sensor:</label>
+                                <select class="form-control" id="shunt_sensor_id" name="shunt_sensor_id">
+                                    {% for sensor in sensors %}
+                                    <option value="{{ sensor.sensor_id }},{{ sensor.sensor_type }}">{{ sensor.sensor_id }},
+                                        {{ sensor.sensor_type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="shunt_threshold_condition">Shunt Threshold Condition:</label>
+                                <select class="form-control" id="shunt_threshold_condition" name="shunt_threshold_condition">
+                                    <option value=">">> (greater than)</option>
+                                    <option value="<">< (less than)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="shunt_threshold_value">Shunt Threshold Value:</label>
+                                <input type="number" class="form-control" id="shunt_threshold_value"
+                                    name="shunt_threshold_value">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Create Conditional Alarm</button>
+            </form>
+        </div>
+
+        <div class="table-container">
+            <h2>Current Alarms</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Sensor ID</th>
+                        <th>Threshold Condition</th>
+                        <th>Threshold Value</th>
+                        <th>Duration</th>
+                        <th>Shunt Sensor</th>
+                        <th>Shunt Threshold Condition</th>
+                        <th>Shunt Threshold Value</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alarm in alarms %}
+                    <tr>
+                        <td>{{ alarm.id }}</td>
+                        <td>{{ alarm.sensor_id }}</td>
+                        <td>{{ alarm.threshold_condition }}</td>
+                        <td>{{ alarm.threshold_value }}</td>
+                        <td>{{ alarm.duration }}</td>
+                        <td>{{ alarm.shunt_sensor_id }}</td>
+                        <td>{{ alarm.shunt_threshold_condition }}</td>
+                        <td>{{ alarm.shunt_threshold_value }}</td>
+                        <td>{{ alarm.alarm_type }}</td>
+                        <td>
+                            <a href="/edit_alarm/{{ alarm.id }}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="/delete_alarm/{{ alarm.id }}" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Are you sure you want to delete this alarm?');">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#shunt_enabled').change(function () {
+                if ($(this).is(':checked')) {
+                    $('.shunt-fields').show();
+                } else {
+                    $('.shunt-fields').hide();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Sensors</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .back-link {
+            margin-top: 20px;
+            display: inline-block;
+            text-decoration: none;
+            color: #007BFF;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .container {
+            margin: 0 auto;
+            max-width: 800px;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        label, select, button {
+            display: block;
+            margin: 10px auto;
+            text-align: center;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        canvas {
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include Date Adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Sensor Data</h1>
+        <a class="back-link" href="/">&lt; Back</a>
+        <h2>Latest Entries of All Sensors</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sensor ID</th>
+                    <th>Sensor Type</th>
+                    <th>Value</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in latest_entries %}
+                <tr>
+                    <td>{{ entry.sensor_id }}</td>
+                    <td>{{ entry.sensor_type }}</td>
+                    <td>{{ entry.value }}</td>
+                    <td>{{ entry.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <label for="sensorSelect">Select Sensor:</label>
+        <select id="sensorSelect">
+            {% for sensor_id in sensor_ids %}
+                <option value="{{ sensor_id }}">{{ sensor_id }}</option>
+            {% endfor %}
+        </select>
+
+        <button onclick="fetchSensorData()">Refresh Data</button>
+
+        <h2>Selected Sensor Data Table</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Sensor ID</th>
+                    <th>Sensor Type</th>
+                    <th>Value</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody id="sensorTable">
+                <!-- Data will be populated by JavaScript -->
+            </tbody>
+        </table>
+
+        <h2>Sensor Data Chart</h2>
+        <canvas id="sensorChart" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        let chart;
+
+        function fetchSensorData() {
+            const sensorId = document.getElementById('sensorSelect').value;
+            fetch(`/sensor_data?sensor_id=${sensorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateTable(data);
+                    updateChart(data);
+                });
+        }
+
+        function updateTable(data) {
+            const table = document.getElementById('sensorTable');
+            table.innerHTML = '';
+            data.forEach(sensor => {
+                const row = `<tr>
+                    <td>${sensor.id}</td>
+                    <td>${sensor.sensor_id}</td>
+                    <td>${sensor.sensor_type}</td>
+                    <td>${sensor.value}</td>
+                    <td>${sensor.timestamp}</td>
+                </tr>`;
+                table.innerHTML += row;
+            });
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            const labels = data.map(sensor => sensor.timestamp);
+            const values = data.map(sensor => sensor.value);
+            const sensorType = data[0] ? data[0].sensor_type : '';
+
+            // Destroy the existing chart if it exists
+            if (chart) {
+                chart.destroy();
+            }
+
+            // Create a new chart
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: sensorType,
+                        data: values,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'minute',
+                                tooltipFormat: 'DD MMM YYYY, HH:mm'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initial fetch
+        fetchSensorData();
+    </script>
+</body>
+</html>

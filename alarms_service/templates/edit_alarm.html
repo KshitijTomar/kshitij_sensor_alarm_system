@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Alarm</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            margin-top: 30px;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        .shunt-fields {
+            display: {{ 'block' if alarm.shunt_enabled else 'none' }};
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Edit Alarm</h1>
+        <form action="/edit_alarm/{{ alarm.id }}" method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="sensor_id">Sensor:</label>
+                        <select class="form-control" id="sensor_id" name="sensor_id" required>
+                            {% for sensor in sensors %}
+                            <option value="{{ sensor.sensor_id }}" {% if sensor.sensor_id == alarm.sensor_id %}selected{% endif %}>
+                                {{ sensor.sensor_id }}, {{ sensor.sensor_type }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="threshold_condition">Threshold Condition:</label>
+                        <select class="form-control" id="threshold_condition" name="threshold_condition" required>
+                            <option value=">" {% if alarm.threshold_condition == '>' %}selected{% endif %}> > (greater than)</option>
+                            <option value="<" {% if alarm.threshold_condition == '<' %}selected{% endif %}> < (less than)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="duration">Duration (minutes):</label>
+                        <input type="number" class="form-control" id="duration" name="duration" value="{{ alarm.duration }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="threshold_value">Threshold Value:</label>
+                        <input type="number" class="form-control" id="threshold_value" name="threshold_value" value="{{ alarm.threshold_value }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="shunt_enabled">Enable Shunt Condition</label>
+                <input type="checkbox" id="shunt_enabled" name="shunt_enabled" value="1" {% if alarm.shunt_enabled %}checked{% endif %}>
+            </div>
+
+            <div class="shunt-fields">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="shunt_sensor_id">Shunt Sensor:</label>
+                            <select class="form-control" id="shunt_sensor_id" name="shunt_sensor_id">
+                                {% for sensor in sensors %}
+                                <option value="{{ sensor.sensor_id }}" {% if sensor.sensor_id == alarm.shunt_sensor_id %}selected{% endif %}>
+                                    {{ sensor.sensor_id }}, {{ sensor.sensor_type }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="shunt_threshold_condition">Shunt Threshold Condition:</label>
+                            <select class="form-control" id="shunt_threshold_condition" name="shunt_threshold_condition">
+                                <option value=">" {% if alarm.shunt_threshold_condition == '>' %}selected{% endif %}> > (greater than)</option>
+                                <option value="<" {% if alarm.shunt_threshold_condition == '<' %}selected{% endif %}> < (less than)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="shunt_threshold_value">Shunt Threshold Value:</label>
+                            <input type="number" class="form-control" id="shunt_threshold_value" name="shunt_threshold_value" value="{{ alarm.shunt_threshold_value }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Update Alarm</button>
+        </form>
+    </div>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('shunt_enabled').addEventListener('change', function () {
+            document.querySelector('.shunt-fields').style.display = this.checked ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>

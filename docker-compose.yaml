@@ -1,0 +1,85 @@
+version: '3'
+services:
+  mqtt:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./_data/mosquitto/_data:/mosquitto/data
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+  
+  postgres:
+    image: postgres:alpine
+    env_file:
+      - ./alarms_service/.env_docker
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: alarms
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./_data/postgres:/var/lib/postgresql/data
+  
+  alarms_service:
+    build: ./alarms_service
+    command: ["python", "app.py"]
+    ports:
+      - "5002:5002"
+    environment:
+      - MQTT_BROKER=mqtt
+      - DB_HOST=postgres
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=alarms
+    depends_on:
+      - mqtt
+      - postgres
+      - sensor-publisher1
+      - sensor-publisher2
+      - sensor-publisher3
+
+  sensor-publisher1:
+    build: ./alarms_service
+    command: ["python", "sensor_publisher.py"]
+    environment:
+      - MQTT_BROKER=mqtt
+      - MQTT_PORT=1883
+      - SENSOR_ID=sensor1
+      - MIN_VALUE=18
+      - MAX_VALUE=24
+      - TYPE=temperature
+      - CURRENT_MIN_VALUE=10
+      - CURRENT_MAX_VALUE=20
+    depends_on:
+      - mqtt
+
+  sensor-publisher2:
+    build: ./alarms_service
+    command: ["python", "sensor_publisher.py"]
+    environment:
+      - MQTT_BROKER=mqtt
+      - MQTT_PORT=1883
+      - SENSOR_ID=sensor2
+      - MIN_VALUE=30
+      - MAX_VALUE=70
+      - TYPE=humidity
+      - CURRENT_MIN_VALUE=10
+      - CURRENT_MAX_VALUE=20
+    depends_on:
+      - mqtt
+
+  sensor-publisher3:
+    build: ./alarms_service
+    command: ["python", "sensor_publisher.py"]
+    environment:
+      - MQTT_BROKER=mqtt
+      - MQTT_PORT=1883
+      - SENSOR_ID=sensor3
+      - MIN_VALUE=950
+      - MAX_VALUE=1050
+      - TYPE=pressure
+      - CURRENT_MIN_VALUE=10
+      - CURRENT_MAX_VALUE=20
+    depends_on:
+      - mqtt

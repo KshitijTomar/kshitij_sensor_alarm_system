@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alarm Service</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .btn-refresh {
+            margin: 20px 0;
+        }
+        .pagination {
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Alarm Service Dashboard</h1>
+        <nav class="nav justify-content-center">
+            <a class="nav-link" href="/alarm_rules">Alarms</a> 
+            <a class="nav-link" href="/view_sensors">View Sensors</a>
+        </nav>
+
+        <!-- Refresh Button -->
+        <button class="btn btn-primary btn-refresh" onclick="fetchAlarmPushes()">Refresh</button>
+
+        <!-- Table to View Alarm pushes -->
+        <h2 class="text-center">Alarm Push MQTT</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Alarm ID</th>
+                    <th>Timestamp</th>
+                    <th>Sensor ID</th>
+                    <th>Threshold</th>
+                    <th>Duration</th>
+                    <th>AlarmType</th>
+                    <th>Action</th>
+
+                </tr>
+            </thead>
+            <tbody id="AlarmPushMQTTTable">
+                <!-- Alarm log rows will be inserted here -->
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation example">
+            <ul class="pagination" id="pagination">
+                <!-- Pagination links will be inserted here -->
+            </ul>
+        </nav>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let currentPage = 1;
+
+        function fetchAlarmPushes(page = 1) {
+            currentPage = page;  // Update the current page
+            fetch(`/alarm_pushes?page=${page}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('AlarmPushMQTTTable');
+                    tableBody.innerHTML = '';
+                    data.alarm_pushes.forEach(log => {
+                        const messageJson = JSON.parse(log.message);
+                        const sensorId = messageJson.sensor_id || 'N/A'; // Fallback if sensor_id is missing
+                        const threshold = `${messageJson.threshold_condition} ${messageJson.threshold_value}`;
+                        var duration = ''
+                        if (messageJson.duration == '1'){
+                            duration = `1 min`;
+                        }
+                        else{
+                            duration = `${messageJson.duration} mins`;
+                        }
+
+                        const row = `<tr>
+                            <td>${log.id}</td>
+                            <td>${log.alarm_id}</td>
+                            <td>${new Date(log.timestamp).toLocaleString()}</td>
+                            <td>${sensorId}</td>
+                            <td>${threshold}</td>
+                            <td>${duration}</td>
+                            <td>${messageJson.alarm_type}</td>
+                            <td><a href="/alarm_rules/${log.alarm_id}" class="btn btn-primary btn-sm">Go to Alarm</a></td>
+                        </tr>`;
+                        tableBody.insertAdjacentHTML('beforeend', row);
+                    });
+
+                    renderPagination(data.pages, data.current_page);
+                });
+        }
+
+        function renderPagination(totalPages, currentPage) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            // Create "Previous" button
+            if (currentPage > 1) {
+                pagination.insertAdjacentHTML('beforeend', `<li class="page-item"><a class="page-link" href="#" onclick="fetchAlarmPushes(${currentPage - 1})">Previous</a></li>`);
+            }
+
+            // Calculate page range
+            let startPage = Math.max(1, currentPage - 3);
+            let endPage = Math.min(totalPages, currentPage + 3);
+
+            // Show "First" and "Previous" ellipses
+            if (startPage > 1) {
+                pagination.insertAdjacentHTML('beforeend', `<li class="page-item"><a class="page-link" href="#" onclick="fetchAlarmPushes(1)">1</a></li>`);
+                if (startPage > 2) {
+                    pagination.insertAdjacentHTML('beforeend', `<li class="page-item disabled"><span class="page-link">...</span></li>`);
+                }
+            }
+
+            // Create page number buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const activeClass = i === currentPage ? 'active' : '';
+                pagination.insertAdjacentHTML('beforeend', `<li class="page-item ${activeClass}"><a class="page-link" href="#" onclick="fetchAlarmPushes(${i})">${i}</a></li>`);
+            }
+
+            // Show "Next" and "Last" ellipses
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    pagination.insertAdjacentHTML('beforeend', `<li class="page-item disabled"><span class="page-link">...</span></li>`);
+                }
+                pagination.insertAdjacentHTML('beforeend', `<li class="page-item"><a class="page-link" href="#" onclick="fetchAlarmPushes(${totalPages})">${totalPages}</a></li>`);
+            }
+
+            // Create "Next" button
+            if (currentPage < totalPages) {
+                pagination.insertAdjacentHTML('beforeend', `<li class="page-item"><a class="page-link" href="#" onclick="fetchAlarmPushes(${currentPage + 1})">Next</a></li>`);
+            }
+        }
+
+        // Initial fetch
+        fetchAlarmPushes();
+    </script>
+</body>
+</html>
