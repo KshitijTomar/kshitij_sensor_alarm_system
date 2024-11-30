@@ -178,6 +178,10 @@ This documentation has outlined the system's architecture, data models, API endp
 - **Real-time Analytics Dashboard**: Visualize sensor data and alarm states.
 - **Advanced Alarm Logic**: Support for more complex conditions and actions.
 
+## ***Other links:***
+- Notion page(private): https://www.notion.so/xitiz7/Alarm-system-d31a6619f9e844d4a04a8e6ea5ab0135?pvs=4
+- Github (private): [https://github.com/KshitijTomar/kshitij_sensor_alarm_system](https://github.com/KshitijTomar/kshitij_sensor_alarm_system)
+
 As the system evolves, future enhancements may include:
 
 - **Support for Additional Database Systems**: Expanding beyond SQLite to include databases like PostgreSQL or MySQL for larger-scale deployments.
